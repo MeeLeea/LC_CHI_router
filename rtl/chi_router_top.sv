@@ -61,6 +61,29 @@ module chi_router_top #(
   // port_egress    u_egress[PORT_NUM] (...);
   // csr_subsys     u_csr_subsys (...);
 
+  // ---------------- 骨架阶段输出 tie-off ----------------
+  // 子系统未接线前，输出不得悬空（未驱动 wire 为 X）：
+  //   - 违反 RST-03（复位期间 link_out_valid 应为 0），断言 A1 会持续报错
+  //   - CSR 侧 prdata/pslverr 为 X 会导致 APB 读回 X
+  // 骨架契约：
+  //   - 出口链路 valid=0（无出口活动，见 doc 报告 D-01）
+  //   - 入口 ready=1（恒接收：系统级 TB 的 agent 发送任务需完成握手，
+  //     否则 send_req/send_dat 死等导致激励超时；scoreboard 只在
+  //     出口 fire 时比对，入口接收不会误报）
+  //   - APB 读立即完成且返回 0、无错误
+  // 子系统接线后删除本段 tie-off。
+  assign link_out_valid = '0;
+  assign link_out_req   = '0;
+  assign link_out_rsp   = '0;
+  assign link_out_dat   = '0;
+  assign link_out_snp   = '0;
+  assign link_in_ready  = '1;
+
+  assign prdata  = '0;
+  assign pready  = 1'b1;
+  assign pslverr = '0;
+  assign irq     = '0;
+
 endmodule
 
 `default_nettype wire
