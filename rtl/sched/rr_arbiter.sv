@@ -22,9 +22,12 @@ module rr_arbiter #(
 
   always_comb begin
     grant = '0;
-    for (int i = 0; i < N; i++) begin
-      int idx = (ptr + i) % N;
-      if (req[idx] && !(|grant)) grant[idx] = 1'b1;
+    // 复位期间强制 grant=0（组合输出不依赖寄存器状态，须显式门控）
+    if (rst_n) begin
+      for (int i = 0; i < N; i++) begin
+        int idx = (ptr + i) % N;
+        if (req[idx] && !(|grant)) grant[idx] = 1'b1;
+      end
     end
   end
 
