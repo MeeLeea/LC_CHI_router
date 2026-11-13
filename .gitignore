@@ -1,0 +1,148 @@
+# ============ 通用 ============
+# 日志与临时文件
+*.log
+*.tmp
+*.bak
+*~
+.DS_Store
+Thumbs.db
+
+# 编辑器 / IDE
+.vscode/
+.idea/
+*.swp
+
+# ============ 仿真产物 (VCS / Xcelium / Questa / Verilator) ============
+# VCS
+simv
+simv.daidir
+csrc/
+vc_hdrs.h
+ucli.key
+Anvas*
+DVEfiles/
+verdi.Log
+novas/
+verdi/
+*.fsdb
+*.fsdb.*
+*.vpd
+*.vcd
+*.vcd.*
+*.ukcmp
+*.svcmp
+*.hcf
+simv*.log
+inter.vpd
+midi/
+
+# Xcelium / Incisive
+xcelium.d/
+inca*
+*.el
+*.toolkit
+*.gcov
+irun.log
+imc.log
+
+# Questa / ModelSim
+work/
+modelsim.ini
+transcript
+vsim.wlf
+*.wlf
+*.do.bak
+questa*-*/ 
+
+# Verilator
+obj_dir/
+
+# 波形与覆盖率通用
+*.wdb
+*.wcfg
+*.vdb
+*.vdd
+*.ucd
+coverage_db/
+urgReport/
+cov_work/
+*.cmv
+*.cmv.db
+
+# ============ 综合产物 (Design Compiler / Vivado) ============
+# Design Compiler
+syn/output/
+syn/report/
+syn/work/
+*.ddc
+*.edf
+*.svf
+*.syn
+*.sdc.old
+alib-52
+command.log
+default.svf
+filelist.log
+pc.clear
+
+# 通用网表 / 报告
+*.netlist.v
+*.mapped.v
+*.sdf
+*.sdcgenerated
+*.timing
+*.area
+*.power
+*.qor
+
+# Vivado
+vivado*.jou
+vivado*.log
+vivado*.str
+.Xil/
+*.bit
+*.ltx
+*.blif
+*.rpt
+*.bak
+*.backup
+*.hwdef
+*.mem
+*.udm
+vivado_hls.log
+.versions
+hw_emu/
+*.post_route_dfx
+*.cache
+*.runs/
+*.sim/
+*.hw/
+*.ip_user_files/
+*.ipi/
+gen/
+
+# ============ 形式验证 / Lint ============
+jg/
+formal*
+*.frmt
+zero_log/
+
+# ============ 后端 / STA (PT 等) ============
+pt/
+multimode/
+mtm/
+*.pdt
+
+# ============ Python (脚本环境) ============
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+uv.lock
+
+# ============ 工具本地目录 ============
+.codegraph/
+.omo/
