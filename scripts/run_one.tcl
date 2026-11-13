@@ -100,7 +100,7 @@ catch {file delete -force "./xsim.dir/${snap}_behav"}
 # -----------------------------------------------------------------------------
 # 5. xelab
 # -----------------------------------------------------------------------------
-set xelab_cmd [list xelab --incr --debug typical --relax --mt 2 -cov all \
+set xelab_cmd [list xelab --incr --debug typical --relax --mt 2 \
     -L work -L unisims_ver -L unimacro_ver -L secureip \
     --snapshot ${snap}_behav]
 foreach d $defs { lappend xelab_cmd -d $d }
@@ -120,7 +120,7 @@ puts "\[INFO\] xelab 完成"
 set env(SIM_TB) $snap
 set xsim_cmd [list xsim ${snap}_behav \
     -tclbatch ./scripts/xsim_run.tcl \
-    -covdb_dir ./cov_db \
+    --cov_db_dir ./cov_db \
     -log ./reports/${snap}_simulate.log]
 
 puts "\[INFO\] 执行: $xsim_cmd"
@@ -139,7 +139,7 @@ if {[file exists $log_file]} {
     set lf [open $log_file r]
     set content [read $lf]
     close $lf
-    if {[string match "*SOME TESTS FAILED*" $content] || [string match "*\[ERROR\]*" $content]} {
+    if {[string match "*SOME TESTS FAILED*" $content] || [string first "\[ERROR\]" $content] >= 0} {
         set verdict "FAILED"
     }
 } elseif {$sim_err ne ""} {

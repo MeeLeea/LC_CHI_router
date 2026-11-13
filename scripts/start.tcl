@@ -112,10 +112,21 @@ foreach d [glob -nocomplain ./xsim.dir/*_behav] {
     catch {file delete -force $d}
 }
 
+# 生成环境变量展开后的 filelist（xvlog 子进程拿不到 XILINX_VIVADO，
+# 直接传原始 filelist 会因 $env(XILINX_VIVADO) 展开失败而报 XSIM 43-4316）
+set fl_exp_path "./sim.dir/sim_filelist_expanded.f"
+set fl_in  [open $fl_path r]
+set fl_out [open $fl_exp_path w]
+set raw_content [read $fl_in]
+close $fl_in
+puts $fl_out [string map [list {$env(XILINX_VIVADO)} $::env(XILINX_VIVADO)] $raw_content]
+close $fl_out
+puts "\[INFO\] 已生成展开版 filelist: $fl_exp_path"
+
 set xvlog_cmd [list xvlog -sv --incr --relax --nolog]
 foreach d $incdirs  { lappend xvlog_cmd -i $d }
 foreach d $defines  { lappend xvlog_cmd -d $d }
-lappend xvlog_cmd -f $fl_path
+lappend xvlog_cmd -f $fl_exp_path
 
 # glbl.v 单独追加编译（显式加入，不经 filelist 二次解析）
 lappend xvlog_cmd -i [file join $::env(XILINX_VIVADO) "data/verilog/src"]
@@ -152,7 +163,7 @@ puts $fh "# 说明: tb 名经 env(SIM_TB) 由调用方（start.tcl / run_one.tcl
 puts $fh "# ============================================================================="
 puts $fh ""
 puts $fh "set tb_name \$::env(SIM_TB)"
-puts $fh "puts \"\[INFO\] xsim_run.tcl: SIM_TB = \$tb_name\""
+puts $fh "puts \"\\\[INFO\\\] xsim_run.tcl: SIM_TB = \$tb_name\""
 puts $fh ""
 puts $fh "file mkdir ./cov_db"
 puts $fh ""
@@ -162,7 +173,7 @@ puts $fh ""
 puts $fh "# 运行直到 \$finish"
 puts $fh "run all"
 puts $fh ""
-puts $fh "puts \"\[INFO\] xsim_run.tcl: run all 完成\""
+puts $fh "puts \"\\\[INFO\\\] xsim_run.tcl: run all 完成\""
 close $fh
 puts "\[INFO\] 已生成 $run_tcl_path"
 
@@ -207,7 +218,7 @@ foreach spec $tb_specs {
     catch {file delete -force "./xsim.dir/${snap}_behav"}
 
     # ---- xelab ----
-    set xelab_cmd [list xelab --incr --debug typical --relax --mt 2 -cov all \
+    set xelab_cmd [list xelab --incr --debug typical --relax --mt 2 \
         -L work -L unisims_ver -L unimacro_ver -L secureip \
         --snapshot ${snap}_behav]
     foreach d $tb_defs { lappend xelab_cmd -d $d }
@@ -227,7 +238,7 @@ foreach spec $tb_specs {
     set env(SIM_TB) $snap
     set xsim_cmd [list xsim ${snap}_behav \
         -tclbatch ./scripts/xsim_run.tcl \
-        -covdb_dir ./cov_db \
+        --cov_db_dir ./cov_db \
         -log ./reports/${snap}_simulate.log]
 
     puts "\[INFO\] 执行: $xsim_cmd"
@@ -244,7 +255,7 @@ foreach spec $tb_specs {
         set lf [open $log_file r]
         set content [read $lf]
         close $lf
-        if {[string match "*SOME TESTS FAILED*" $content] || [string match "*\[ERROR\]*" $content]} {
+        if {[string match "*SOME TESTS FAILED*" $content] || [string first "\[ERROR\]" $content] >= 0} {
             set verdict "FAILED"
         }
     } elseif {$sim_err ne ""} {
