@@ -135,9 +135,12 @@ module chi_tb_pool_credit;
     // TC6: 全 pool 并行分配 -> 各 pool 独立无串扰
     // -----------------------------------------------------------------------
     pulse({POOL_NUM{1'b1}}, '0);
+    // 期望值：pool0 在 TC4/TC5 后计数为 1，其余 pool 保持复位值 INIT_CRD；
+    // 并行分配各减 1 -> pool0=0，其余=INIT_CRD-1
     for (i = 0; i < POOL_NUM; i++) begin
-      check(crd_cnt[i] === CRD_W'(1),
-            $sformatf("TC6 pool%0d 并行分配后应为 1, 实际 %0d", i, crd_cnt[i]));
+      check(crd_cnt[i] === CRD_W'((i == 0) ? 0 : INIT_CRD - 1),
+            $sformatf("TC6 pool%0d 并行分配后应为 %0d, 实际 %0d",
+                      i, (i == 0) ? 0 : INIT_CRD - 1, crd_cnt[i]));
     end
     $display("[TB] TC6 全 pool 并行分配: 8 个 pool 计数一致 = %0d", crd_cnt[0]);
 

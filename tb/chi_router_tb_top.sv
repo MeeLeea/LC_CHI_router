@@ -322,11 +322,11 @@ module chi_router_tb_top;
 
     // ---- 非法地址 ----
     apb_read(16'hFFF0, rd_data, rd_err);
-    $display("[TB] 非法地址 0x%FFF0 读: prdata=0x%08h pslverr=%b", rd_data, rd_err);
+    $display("[TB] 非法地址 0xFFF0 读: prdata=0x%08h pslverr=%b", rd_data, rd_err);
 
     // ---- 链路：端口 0 发 1 个 REQ，目标端口 3 ----
     //      send_req(opcode, size, order, domain, tgt_id, src_id, qos, txn_id, payload)
-    u_rn[0].send_req(chi_tb_pkg::OP_REQ_READ_SHARED, 3'd3, 3'd0, 2'd0,
+    g_port[0].u_rn.send_req(chi_tb_pkg::OP_REQ_READ_SHARED, 3'd3, 3'd0, 2'd0,
                      16'h1234, 16'h0000, 1'b0, 8'h01, {448'h0, 16'hA5A5});
     $display("[TB] 端口0 已发送 1 个 REQ (tgt=0x1234)");
 
@@ -355,21 +355,21 @@ module chi_router_tb_top;
     // 8 个端口并行向端口 0 发 REQ，制造出口过载
     // 注：generate 块变量索引调用（u_rn[pp].task()）非标准，改用独立 fork 分支
     fork
-      u_rn[0].send_req(chi_tb_pkg::OP_REQ_WRITE_UNIQUE, 3'd7, 3'd0, 2'd0,
+      g_port[0].u_rn.send_req(chi_tb_pkg::OP_REQ_WRITE_UNIQUE, 3'd7, 3'd0, 2'd0,
                        16'h0000, 16'h0100, 2'd0, 8'h10, {448'h0, 16'hB000});
-      u_rn[1].send_req(chi_tb_pkg::OP_REQ_WRITE_UNIQUE, 3'd7, 3'd0, 2'd0,
+      g_port[1].u_rn.send_req(chi_tb_pkg::OP_REQ_WRITE_UNIQUE, 3'd7, 3'd0, 2'd0,
                        16'h0000, 16'h0101, 2'd1, 8'h11, {448'h0, 16'hB001});
-      u_rn[2].send_req(chi_tb_pkg::OP_REQ_WRITE_UNIQUE, 3'd7, 3'd0, 2'd0,
+      g_port[2].u_rn.send_req(chi_tb_pkg::OP_REQ_WRITE_UNIQUE, 3'd7, 3'd0, 2'd0,
                        16'h0000, 16'h0102, 2'd2, 8'h12, {448'h0, 16'hB002});
-      u_rn[3].send_req(chi_tb_pkg::OP_REQ_WRITE_UNIQUE, 3'd7, 3'd0, 2'd0,
+      g_port[3].u_rn.send_req(chi_tb_pkg::OP_REQ_WRITE_UNIQUE, 3'd7, 3'd0, 2'd0,
                        16'h0000, 16'h0103, 2'd3, 8'h13, {448'h0, 16'hB003});
-      u_rn[4].send_req(chi_tb_pkg::OP_REQ_WRITE_UNIQUE, 3'd7, 3'd0, 2'd0,
+      g_port[4].u_rn.send_req(chi_tb_pkg::OP_REQ_WRITE_UNIQUE, 3'd7, 3'd0, 2'd0,
                        16'h0000, 16'h0104, 2'd0, 8'h14, {448'h0, 16'hB004});
-      u_rn[5].send_req(chi_tb_pkg::OP_REQ_WRITE_UNIQUE, 3'd7, 3'd0, 2'd0,
+      g_port[5].u_rn.send_req(chi_tb_pkg::OP_REQ_WRITE_UNIQUE, 3'd7, 3'd0, 2'd0,
                        16'h0000, 16'h0105, 2'd1, 8'h15, {448'h0, 16'hB005});
-      u_rn[6].send_req(chi_tb_pkg::OP_REQ_WRITE_UNIQUE, 3'd7, 3'd0, 2'd0,
+      g_port[6].u_rn.send_req(chi_tb_pkg::OP_REQ_WRITE_UNIQUE, 3'd7, 3'd0, 2'd0,
                        16'h0000, 16'h0106, 2'd2, 8'h16, {448'h0, 16'hB006});
-      u_rn[7].send_req(chi_tb_pkg::OP_REQ_WRITE_UNIQUE, 3'd7, 3'd0, 2'd0,
+      g_port[7].u_rn.send_req(chi_tb_pkg::OP_REQ_WRITE_UNIQUE, 3'd7, 3'd0, 2'd0,
                        16'h0000, 16'h0107, 2'd3, 8'h17, {448'h0, 16'hB007});
     join
     $display("[TB] 8 个端口已向端口0 各发送 1 个 REQ");
@@ -404,7 +404,7 @@ module chi_router_tb_top;
 
     // 同一 (src, tgt, domain) 连发 8 个 REQ，txn_id 递增
     for (t = 0; t < 8; t++) begin
-      u_rn[1].send_req(chi_tb_pkg::OP_REQ_READ_UNIQUE, 3'd4, 3'd2, 2'd1,
+      g_port[1].u_rn.send_req(chi_tb_pkg::OP_REQ_READ_UNIQUE, 3'd4, 3'd2, 2'd1,
                        16'h0200, 16'h0001, 1'b1, 8'(8'h20 + t),
                        {448'h0, 16'(16'hC000 + t)});
     end
@@ -413,7 +413,7 @@ module chi_router_tb_top;
     // 多 beat 同包：HN 侧回送 4 beat DAT（末 beat is_last=1）
     //   send_dat(opcode, domain, tgt_id, src_id, txn_id, payload, is_last)
     for (b = 0; b < 4; b++) begin
-      u_hn[2].send_dat(chi_tb_pkg::OP_DAT_COMP_DATA, 2'd0, 16'h0200, 16'h0002,
+      g_port[2].u_hn.send_dat(chi_tb_pkg::OP_DAT_COMP_DATA, 2'd0, 16'h0200, 16'h0002,
                        8'h30, {448'h0, 16'(16'hD000 + b)}, (b == 3));
     end
     $display("[TB] 端口2 HN 已回送 4 beat DAT (txn 0x30, 末beat=1)");

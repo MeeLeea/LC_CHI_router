@@ -60,6 +60,10 @@ module chi_tb_rr_arbiter;
     seen_mask = '0;
     g_first   = '0;
 
+    // 等待复位释放后再开始功能检查（RTL 契约: 复位期间 grant=0，不做功能判定）
+    wait (rst_n === 1'b1);
+    @(negedge clk);
+
     // -----------------------------------------------------------------------
     // TC1: 无请求 -> grant 应为 0
     // -----------------------------------------------------------------------
@@ -125,10 +129,15 @@ module chi_tb_rr_arbiter;
     check(grant == '0, "TC5 复位期间 grant 非 0");
     @(negedge clk);
     rst_n = 1'b1;
+    #0.1;
+    // grant 为组合输出：复位释放当拍（周期内）即应给出 idx0 授权，勿跨时钟沿采样
+    check(grant == N'(1),
+          $sformatf("TC5 复位释放后应立即从 idx0 授权, 实际 grant=%b", grant));
     @(posedge clk);
     #0.1;
-    check(grant == N'(1),
-          $sformatf("TC5 复位释放后应从 idx0 授权, 实际 grant=%b", grant));
+    // idx0 授权已在该拍消耗，下一拍应轮转到 idx1
+    check(grant == (N'(1) << 1),
+          $sformatf("TC5 释放后下一拍应轮转到 idx1, 实际 grant=%b", grant));
     $display("[TB] TC5 复位行为: 复位后 grant=%b", grant);
 
     // -----------------------------------------------------------------------
