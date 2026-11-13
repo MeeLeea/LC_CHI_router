@@ -121,6 +121,19 @@ hw_emu/
 *.ipi/
 gen/
 
+# Vivado Xsim 仿真产物（本工程回归流程生成）
+xsim.dir/
+sim.dir/
+cov_db/
+reports/
+dfx_runtime.txt
+scripts/xsim_run.tcl
+*.jou
+*.pb
+*.backup.*
+webtalk*
+webtalk.dir/
+
 # ============ 形式验证 / Lint ============
 jg/
 formal*
